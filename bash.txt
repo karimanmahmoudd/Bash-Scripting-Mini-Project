@@ -1,0 +1,204 @@
+#!/bin/bash
+
+function adduser() {
+    local username
+        read -p "Please enter the username: " username
+        if id "$username" &>/dev/null
+        then
+            echo "User $username already exists."
+        else
+            sudo useradd "$username"
+            sudo passwd $username
+            echo "Password for $username has been changed."
+        fi
+}
+
+
+function modifyuser() {
+        read -p "Please enter the username you want to modify: " username
+        if id "$username" &>/dev/null
+        then
+            echo "User $username exists."
+            read -p "Enter the new username: " new_username
+
+            sudo usermod -l "$new_username" "$username"
+        else
+            echo "User $username doesn't exist."
+        fi
+}
+
+function listusers() {
+        echo "List of available users on the system: "
+        sudo sed 's/:.*//' /etc/passwd
+}
+
+function deleteuser() {
+local username
+        read -p "Please enter the username: " username
+        if id "$username" &>/dev/null
+        then
+            read -p "Are you sure you want to delete user $username and all the                                                                               ir files? (y/n): " userFiles
+            if [[ "$userFiles" == "y" || "$userFiles" == "Y" ]]
+            then
+                sudo userdel -r "$username"
+                echo "User $username and their home directory have been deleted                                                                               ."
+            else
+                echo "Delete operation aborted."
+            fi
+
+        else
+               echo "$username doesn't exist."
+        fi
+
+}
+
+function addUserToGroup() {
+        read -p "Please enter the username: " username
+        read -p "Please enter the group name: " groupName
+
+        if id "$username" &>/dev/null
+        then
+            if getent group "$groupName" &>/dev/null
+            then
+                sudo usermod -aG "$groupName" "$username"
+                echo "User $username has been added to group $groupName."
+            else
+                echo "Group $groupName doesn't exist."
+            fi
+        else
+            echo "User $username doesn't exist."
+        fi
+}
+
+function enableUser() {
+        read -p "Please enter the username: " username
+
+        if id "$username" &>/dev/null
+        then
+            sudo usermod -U "$username"
+            echo "User $username has been enabled."
+        else
+            echo "User $username doesn't exist."
+        fi
+}
+
+
+function disableUser() {
+                read -p "Please enter the username: " username
+                if id "$username" &>/dev/null
+                then
+                        sudo usermod -L "$username"
+                        echo "User $username has been disabled."
+                else
+                        echo "User $username doesn't exist."
+                fi
+}
+
+function changePassword() {
+                read -p "Please enter the username: " username
+                if id "$username" &>/dev/null
+                then
+                        sudo passwd $username
+                        echo "Password for $username has been changed."
+                else
+                        echo "User $username doesn't exist."
+                fi
+}
+
+function addGroup() {
+local groupname
+        read -p "Please enter the group name: " groupname
+        if getent group "$groupname" &>/dev/null
+        then
+            echo "Group $groupname already exists."
+        else
+            sudo groupadd "$groupname"
+        fi
+
+}
+
+function modifyGroup() {
+        read -p "Please enter the group name you want to modify: " groupname
+        if getent group "$groupname" &>/dev/null
+        then
+                echo "Group $groupname exists."
+                read -p "Enter the new group name: " new_groupname
+
+                sudo groupmod -n "$new_groupname" "$groupname"
+        else
+                echo "Group $groupname doesn't exist."
+        fi
+}
+
+
+function deleteGroup() {
+local groupname
+        read -p "Please enter the group name: " groupname
+        if getent group "$groupname" &>/dev/null
+       then
+               sudo groupdel $groupname
+               echo "Group $groupname has been deleted."
+        else
+               echo "$groupname doesn't exist."
+        fi
+}
+
+
+function listGroups() {
+        echo "List of available groups on the system: "
+        sudo sed 's/:.*//' /etc/group
+}
+
+
+PS3="Choose an option: "
+options=("Add User" "Modify User" "List Users" "Delete User" "Add User To Group                                                                               " "Enable User" "Disable User" "Change Password" "Add Group" "Modify Group" "De                                                                               lete Group" "List Groups" "Exit")
+
+select option in "${options[@]}"
+do
+    case $option in
+        "Add User")
+            adduser
+            ;;
+        "Modify User")
+            modifyuser
+            ;;
+        "List Users")
+            listusers
+            ;;
+        "Delete User")
+            deleteuser
+            ;;
+        "Add User To Group")
+            addUserToGroup
+            ;;
+        "Enable User")
+            enableUser
+            ;;
+        "Disable User")
+            disableUser
+            ;;
+        "Change Password")
+            changePassword
+            ;;
+        "Add Group")
+            addGroup
+            ;;
+        "Modify Group")
+            modifyGroup
+            ;;
+        "Delete Group")
+            deleteGroup
+            ;;
+        "List Groups")
+            listGroups
+            ;;
+
+        "Exit")
+            echo "Exiting script."
+            break
+            ;;
+        *)
+            echo "Invalid option. Please choose a valid number."
+            ;;
+    esac
+done
